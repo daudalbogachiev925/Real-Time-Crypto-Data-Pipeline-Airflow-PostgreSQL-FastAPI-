@@ -1,0 +1,31 @@
+pipeline:
+  symbols: ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT"]
+  intervals: ["5m", "1h", "1d"]
+  realtime_interval: "5m"
+  realtime_lookback_candles: 12  # 1 час истории на каждый запуск
+  historical_days: 90
+
+binance:
+  base_url: "https://api.binance.com"
+  timeout_seconds: 30
+  max_candles_per_request: 1000
+
+coingecko:
+  base_url: "https://api.coingecko.com/api/v3"
+  timeout_seconds: 30
+  rate_limit_pause_seconds: 3.0
+  coin_ids:
+    BTCUSDT: "bitcoin"
+    ETHUSDT: "ethereum"
+    SOLUSDT: "solana"
+    BNBUSDT: "binancecoin"
+    XRPUSDT: "ripple"
+
+storage:
+  parquet_dir: "/data/parquet"
+  postgres_retention_days: 90
+
+validation:
+  max_freshness_minutes: 10
+  gap_check_window_hours: 24
+  price_change_alert_pct: 25.0
