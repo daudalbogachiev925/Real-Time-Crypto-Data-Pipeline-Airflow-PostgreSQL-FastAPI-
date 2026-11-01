@@ -125,3 +125,40 @@ addopts = "-q --asyncio-mode=auto"
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+Как запустить (полная последовательность)
+
+# 1. Подготовка окружения
+cp .env.example .env
+make up            # docker compose up -d --build
+#  → поднимается: postgres, airflow-init, airflow-webserver, airflow-scheduler, api
+
+# 2. Инициализация схемы БД
+make init
+#  → docker compose exec api python scripts/init_db.py
+
+# 3. Открыть UI
+#  Airflow: http://localhost:8080  (admin/admin)
+#  API:     http://localhost:8000/docs
+
+# 4. Активировать DAG'и в Airflow UI (toggle on):
+#   - crypto_realtime      (*/5 * * * *)
+#   - crypto_historical    (0 2 * * *)
+#   - crypto_maintenance   (30 3 * * *)
+
+# 5. Ручной backfill (например, BTCUSDT 1h за 30 дней)
+docker compose exec api python scripts/backfill.py \
+  --symbol BTCUSDT --interval 1h --days 30
+
+# 6. Проверить данные через API
+curl "http://localhost:8000/symbols"
+curl "http://localhost:8000/candles?symbol=BTCUSDT&interval=5m&limit=10"
+curl "http://localhost:8000/latest?symbol=BTCUSDT&interval=5m"
+curl "http://localhost:8000/quality?symbol=BTCUSDT&interval=5m"
+
+# 7. Тесты локально (без docker)
+python -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+pytest -q
+
+# 8. Остановить стек
+make down
